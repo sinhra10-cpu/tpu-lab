@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TPUラボ">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161e26" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>経会陰エコー分娩評価ラボ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one-column phone app; sticky header, tab panels, fixed bottom tab bar. US screens stay dark like a real monitor. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --ink:#18232e; --muted:#5b6a78; --line:#d7dee5;
+  --accent:#0d6e8a; --accent-soft:#e2f0f4;
+  --caliper:#f2b632; --tangent:#4fd1e8; --bone:#e9eef2; --skull:#c9d4dc;
+  --us-bg:#05080b; --us-fan:#121a21; --us-head:#1c2730; --us-text:#9fb0bd; --probe:#3a4752;
+  --ok:#1f8a5b; --warn:#b7791f; --bad:#b3443a;
+  --ok-soft:#e3f3ec; --warn-soft:#fbf1df; --bad-soft:#f8e5e3;
+  --pelvis:#c3ccd5; --zero:#b3443a;
+  --f-display:"Zen Old Mincho","Hiragino Mincho ProN",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141a; --surface:#161e26; --ink:#e4ebf1; --muted:#97a6b3; --line:#2a3743;
+  --accent:#4fb6d1; --accent-soft:#16303a; --pelvis:#4a5866; --zero:#e2766c;
+  --ok:#4cc38a; --warn:#e0a84a; --bad:#e2766c;
+  --ok-soft:#14301f; --warn-soft:#33270f; --bad-soft:#3a1c19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#161e26; --ink:#e4ebf1; --muted:#97a6b3; --line:#2a3743;
+  --accent:#4fb6d1; --accent-soft:#16303a; --pelvis:#4a5866; --zero:#e2766c;
+  --ok:#4cc38a; --warn:#e0a84a; --bad:#e2766c;
+  --ok-soft:#14301f; --warn-soft:#33270f; --bad-soft:#3a1c19; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header h1{font-family:var(--f-display);font-size:19px;margin:0;line-height:1.3;text-wrap:balance}
+header p{margin:0;font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+main{max-width:640px;margin:0 auto;padding-block:16px 110px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section.panel{display:flex;flex-direction:column;gap:14px}
+h2{font-family:var(--f-display);font-size:20px;margin:0;line-height:1.35;text-wrap:balance}
+h2 small,.en{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted);letter-spacing:.02em}
+h3{font-size:15px;margin:0 0 4px}
+p{margin:0}
+.term{white-space:nowrap}
+.term .en{margin-left:2px}
+.screen{background:var(--us-bg);border-radius:14px;overflow:hidden;position:relative}
+.screen svg{display:block;width:100%;height:auto}
+.screen .tag{position:absolute;left:10px;top:8px;font:500 10.5px var(--f-mono);color:var(--us-text);letter-spacing:.06em}
+.figure{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.figure svg{display:block;width:100%;height:auto}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.readout div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.readout b{display:block;font:600 22px var(--f-mono);font-variant-numeric:tabular-nums;line-height:1.2}
+.readout span{font-size:11px;color:var(--muted);line-height:1.3;display:block}
+.ctrl{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ctrl label,.ctrl .lbl{font-size:13px;font-weight:500;display:flex;justify-content:space-between;gap:8px}
+.ctrl output{font:600 13px var(--f-mono);color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);height:32px}
+.scale{display:flex;justify-content:space-between;font:400 10.5px var(--f-mono);color:var(--muted)}
+.verdict{border-radius:12px;padding:12px 14px;border:1px solid transparent;display:flex;flex-direction:column;gap:4px}
+.verdict .pill{align-self:flex-start;font-size:11.5px;font-weight:700;padding:2px 10px;border-radius:99px;letter-spacing:.04em}
+.v-ok{background:var(--ok-soft);border-color:var(--ok)} .v-ok .pill{background:var(--ok);color:var(--surface)}
+.v-warn{background:var(--warn-soft);border-color:var(--warn)} .v-warn .pill{background:var(--warn);color:var(--surface)}
+.v-bad{background:var(--bad-soft);border-color:var(--bad)} .v-bad .pill{background:var(--bad);color:var(--surface)}
+.verdict p{font-size:13.5px}
+.cite{font-size:11px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.def{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.def p{font-size:14px}
+.sub{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.06em;margin-top:4px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+ol.steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px;font-size:14px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(7,1fr);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{appearance:none;border:0;background:none;color:var(--muted);font:500 9.5px var(--f-body);padding:8px 1px 9px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;min-height:54px;min-width:0}
+nav.tabs button b{font:600 12.5px var(--f-mono);letter-spacing:.01em}
+nav.tabs button[aria-selected=true]{color:var(--accent)}
+nav.tabs button[aria-selected=true] b{border-bottom:2px solid var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.quiz-q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.quiz-q .opts{display:flex;flex-direction:column;gap:8px}
+.quiz-q .opts button{appearance:none;text-align:left;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.quiz-q .opts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.quiz-q .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.quiz-q .exp{font-size:13px;color:var(--muted)}
+.qbar{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+.qbar button{appearance:none;font:500 13px var(--f-body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:99px;padding:7px 16px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{appearance:none;font:500 12px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.findings{display:flex;flex-direction:column;gap:10px}
+.findings ul{margin:0;padding-left:1.2em;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
+.refs{display:flex;flex-direction:column;gap:10px;font-size:12.5px;margin:0;padding-left:1.2em}
+.refs a{color:var(--accent);word-break:break-word}
+</style>
+
+</head>
+<body>
+<header>
+  <h1>経会陰エコー分娩評価ラボ</h1>
+  <p>Transperineal Ultrasound (TPU) for Labor Progress · 助産師・産科医のための学習ツール</p>
+</header>
+
+<main>
+<!-- ============ AoP ============ -->
+<section class="panel" id="aop">
+  <h2>進展角 <small>Angle of Progression (AoP)</small></h2>
+  <div class="screen">
+    <span class="tag">TPU · MID-SAGITTAL 正中矢状断 · probe 12時</span>
+    <svg id="svgAop" viewBox="0 0 340 340" role="img" aria-label="経会陰正中矢状断の模式図。プローブは12時方向。恥骨結合と児頭、進展角を表示"></svg>
+  </div>
+  <div class="readout">
+    <div><b id="roAop">120°</b><span>進展角 AoP</span></div>
+    <div><b id="roSt">0</b><span>推定 station<br>児頭下降度</span></div>
+    <div><b id="roEng">—</b><span>嵌入 engagement</span></div>
+  </div>
+  <div class="ctrl">
+    <label for="aopSlider">進展角を動かす <span class="en">AoP</span><output id="aopOut">120°</output></label>
+    <input id="aopSlider" type="range" min="84" max="170" step="1" value="120">
+    <div class="scale"><span>84°</span><span>116°</span><span>140°</span><span>170°</span></div>
+  </div>
+  <div id="vAop" class="verdict"></div>
+  <div class="def">
+    <h3>定義と測り方</h3>
+    <p><span class="term">恥骨結合<span class="en">pubic symphysis</span></span>の長軸と、恥骨下縁から児頭骨性先進部へ引いた接線とのなす角度。児頭が下降するほど角度は大きくなります。</p>
+    <p class="note">画面上(12時)がプローブ=会陰。頂点は恥骨結合の下縁、黄線 = 恥骨結合長軸(延長線)、青線 = 児頭骨性部への接線。児頭は必ずこの2線で挟まれた角の内側にあります。陣痛間欠期・いきみのない状態で測定します。</p>
+  </div>
+</section>
+
+<!-- ============ HPD ============ -->
+<section class="panel" id="hpd" hidden>
+  <h2>児頭会陰間距離 <small>Head–Perineum Distance (HPD)</small></h2>
+  <div class="screen">
+    <span class="tag">TPU · TRANSVERSE 横断 · probe 12時</span>
+    <svg id="svgHpd" viewBox="0 0 360 280" role="img" aria-label="経会陰横断の模式図。プローブは12時方向。会陰皮膚から児頭骨性外縁までの距離"></svg>
+  </div>
+  <div class="ctrl">
+    <label for="hpdSlider">HPD を設定 <span class="en">mm</span><output id="hpdOut">40 mm</output></label>
+    <input id="hpdSlider" type="range" min="15" max="70" step="1" value="40">
+    <div class="scale"><span>15</span><span>40</span><span>70 mm</span></div>
+  </div>
+  <div id="vHpd" class="verdict"></div>
+  <div class="def">
+    <h3>定義と測り方</h3>
+    <p>横断面で、児頭骨性外縁から会陰皮膚表面までの最短距離。プローブで会陰の軟部組織を恥骨方向へ十分に圧迫してから測ります(圧迫不足は過大評価の原因)。</p>
+    <p class="note">画面上(12時)がプローブ=会陰皮膚、下へ行くほど深部。プローブ角度を振って最短距離が得られる位置を探します。</p>
+  </div>
+</section>
+
+<!-- ============ HD ============ -->
+<section class="panel" id="hd" hidden>
+  <h2>児頭方向 <small>Head Direction (HD)</small></h2>
+  <div class="screen">
+    <span class="tag">TPU · MID-SAGITTAL 正中矢状断</span>
+    <svg id="svgHd" viewBox="0 0 360 280" role="img" aria-label="児頭長軸の向きと恥骨結合長軸の関係"></svg>
+  </div>
+  <div class="ctrl">
+    <label for="hdSlider">児頭長軸の角度 <span class="en">vs. symphysis axis</span><output id="hdOut">15°</output></label>
+    <input id="hdSlider" type="range" min="-30" max="60" step="1" value="15">
+    <div class="scale"><span>−30°</span><span>0°</span><span>30°</span><span>60°</span></div>
+  </div>
+  <div id="vHd" class="verdict"></div>
+  <div class="def">
+    <h3>定義</h3>
+    <p>正中矢状断で、認識できる児頭の最長軸と恥骨結合長軸とのなす角。<b>head down</b>(&lt;0°)・<b>horizontal</b>(0〜30°)・<b>head up</b>(&gt;30°)の3分類で読みます。児頭が骨盤底に向かって下降するにつれ、下向き → 水平 → 上向きへ変化します。</p>
+  </div>
+</section>
+
+<!-- ============ MLA ============ -->
+<section class="panel" id="mla" hidden>
+  <h2>正中線角度 <small>Midline Angle (MLA)</small></h2>
+  <div class="screen">
+    <span class="tag">TPU · TRANSVERSE 横断</span>
+    <svg id="svgMla" viewBox="0 0 360 280" role="img" aria-label="横断面で児頭正中線エコーと母体骨盤前後軸のなす角"></svg>
+  </div>
+  <div class="ctrl">
+    <label for="mlaSlider">正中線の傾き <span class="en">rotation</span><output id="mlaOut">60°</output></label>
+    <input id="mlaSlider" type="range" min="0" max="90" step="1" value="60">
+    <div class="scale"><span>0° (回旋完了)</span><span>45°</span><span>90° (横向き)</span></div>
+  </div>
+  <div class="chips" role="group" aria-label="追加所見">
+    <button id="chipUp" aria-pressed="false">児頭方向が head up</button>
+  </div>
+  <div id="vMla" class="verdict"></div>
+  <div class="def">
+    <h3>定義</h3>
+    <p>横断面で、<span class="term">児頭正中線エコー<span class="en">cerebral midline</span></span>と<span class="term">母体骨盤前後軸<span class="en">AP axis of the pelvis</span></span>のなす角度。<span class="term">内回旋<span class="en">internal rotation</span></span>が進むほど0°に近づきます。正中線が描出できないこと自体も「まだ高い」ことの所見になります。</p>
+  </div>
+</section>
+
+<!-- ============ Station ============ -->
+<section class="panel" id="st" hidden>
+  <h2>児頭下降度 <small>Fetal Head Station (St)</small></h2>
+  <div class="figure">
+    <svg id="svgSt" viewBox="0 0 360 290" role="img" aria-label="坐骨棘間線を0とした児頭下降度のcmスケールと、恥骨結合・Hodge平面との位置関係"></svg>
+  </div>
+  <div class="readout">
+    <div><b id="stRo">0</b><span>station<br>児頭下降度</span></div>
+    <div><b id="stAop">116°</b><span>対応する AoP<br>(ISUOG表)</span></div>
+    <div><b id="stState">骨盤中部</b><span>DGGG 分類</span></div>
+  </div>
+  <div class="ctrl">
+    <label for="stSlider">児頭骨性先進部の高さ <span class="en">cm, vs. ischial spines</span><output id="stOut">0</output></label>
+    <input id="stSlider" type="range" min="-5" max="5" step="1" value="0">
+    <div class="scale"><span>−5</span><span>−4 (U面)</span><span>0 (坐骨棘)</span><span>+4 (骨盤底)</span><span>+5</span></div>
+  </div>
+  <div id="vSt" class="verdict"></div>
+
+  <h2 style="margin-top:6px">恥骨結合・坐骨棘との関係 <small>Bony landmarks</small></h2>
+  <div class="tbl">
+    <table id="stTbl">
+      <thead><tr><th>St</th><th>位置・分類<br><span class="en">DGGG</span></th><th>恥骨結合・Hodge 平面</th><th>内診所見・臨床</th></tr></thead>
+      <tbody>
+        <tr data-r="hi"><td class="num">&lt;−4</td><td>骨盤入口部より上</td><td>先進部は恥骨結合下縁(U面)より上</td><td>—</td></tr>
+        <tr data-r="be"><td class="num">−4〜0</td><td>骨盤入口部<br><span class="en">Beckeneingang</span></td><td>−4 = 恥骨結合下縁の平面(U面)</td><td>器械分娩は禁忌</td></tr>
+        <tr data-r="bm1"><td class="num">0〜&lt;+2</td><td>骨盤中部<br><span class="en">Beckenmitte</span></td><td>0 = 坐骨棘間平面(I面)<br>= 嵌入 engagement</td><td>坐骨棘は4時・8時方向に触知</td></tr>
+        <tr data-r="bm2"><td class="num">+2〜&lt;+4</td><td>骨盤中部(低位)</td><td>—</td><td>—</td></tr>
+        <tr data-r="bb"><td class="num">≥+4</td><td>骨盤底・出口部<br><span class="en">Beckenboden</span></td><td>骨盤出口面(B面)</td><td><b>坐骨棘と仙骨窩は触れない</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="def">
+    <h3>海外の教科書・ガイドラインでの扱い</h3>
+    <p><b>Station(DeLee)</b>: 坐骨棘間平面を 0 とし、骨性先進部の位置を −5〜+5 cm で表す。坐骨棘は内診で4時・8時方向に触れる。頭位では先進部が station 0 に達した時点で嵌入とする(Gabbe's Obstetrics)。</p>
+    <p><b>Hodge 平面</b>: O面 = 恥骨結合上縁と岬角を結ぶ面(骨盤入口)、U面 = 恥骨結合下縁を通る平行面、I面 = 坐骨棘間平面、B面 = 骨盤出口面。U面は坐骨棘間平面の 4 cm 上にあたります(Weitzel & Hopp 1998)。</p>
+    <p><b>恥骨結合の触知範囲</b>: 今回確認した海外の教科書・ガイドラインでは、恥骨結合後面の触知範囲を station の尺度としては用いていません。恥骨結合は Hodge 平面(O面・U面)の基準として使われています。</p>
+    <p class="note">内診で追うのは骨性先進部であり、産瘤(caput)ではありません。産瘤を先進部と誤認すると station を低く見積もります。</p>
+  </div>
+  <div class="def">
+    <h3>腹部触診での下降度 <span class="en">fifths palpable</span></h3>
+    <p>骨盤入口より上に触れる児頭を5分の何で表します。<b>5/5</b> = 児頭全体が入口より上、<b>2/5</b> = 児頭の大部分が入口より下で嵌入、<b>1/5</b> = 児頭の先端のみ触れる。3/5 と 2/5 の区別が特に重要です。</p>
+    <p class="note">5分法と cm 単位の station を1対1で換算する信頼できる表は見つからなかったため、換算は示していません。</p>
+  </div>
+  <p class="cite">出典: Kilpatrick S, Garrison E. Normal Labor and Delivery. Gabbe's Obstetrics; DGGG/ÖGGG/SGGG S2k-Leitlinie Vaginal-operative Geburtshilfe (2012; 2023改訂 doi:10.1055/a-2417-7833); Weitzel H, Hopp H. Gynäkologe 1998;31:742–750; Bettercare Intrapartum Care 3A。</p>
+
+  <h2 style="margin-top:6px">St 評価 <small>Station assessment from TPU findings</small></h2>
+  <div class="ctrl">
+    <label for="evAop">① 測定した AoP <span class="en">mid-sagittal</span><output id="evAopOut">125°</output></label>
+    <input id="evAop" type="range" min="84" max="170" step="1" value="125">
+  </div>
+  <div class="ctrl">
+    <span class="lbl">② HPD <span class="en">transverse</span></span>
+    <div class="chips" role="group" aria-label="HPD" id="evHpd">
+      <button data-v="lt35" aria-pressed="false">&lt;35 mm</button>
+      <button data-v="35" aria-pressed="false">35–38 mm</button>
+      <button data-v="39" aria-pressed="false">39–40 mm</button>
+      <button data-v="gt40" aria-pressed="false">&gt;40 mm</button>
+      <button data-v="na" aria-pressed="true">未測定</button>
+    </div>
+  </div>
+  <div class="ctrl">
+    <span class="lbl">③ 児頭方向 <span class="en">head direction</span></span>
+    <div class="chips" role="group" aria-label="児頭方向" id="evHd">
+      <button data-v="down" aria-pressed="false">down &lt;0°</button>
+      <button data-v="hor" aria-pressed="false">horizontal 0–30°</button>
+      <button data-v="up" aria-pressed="false">up &gt;30°</button>
+      <button data-v="na" aria-pressed="true">未測定</button>
+    </div>
+  </div>
+  <div class="ctrl">
+    <span class="lbl">④ 正中線角度 <span class="en">MLA</span></span>
+    <div class="chips" role="group" aria-label="正中線角度" id="evMla">
+      <button data-v="ge45" aria-pressed="false">≥45° / 描出不能</button>
+      <button data-v="lt45" aria-pressed="false">&lt;45°</button>
+      <button data-v="na" aria-pressed="true">未測定</button>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label for="evDig">⑤ 内診での station <span class="en">digital examination</span><output id="evDigOut">未入力</output></label>
+    <input id="evDig" type="range" min="-4" max="5" step="1" value="-4">
+    <div class="scale"><span>未入力</span><span>−3</span><span>0</span><span>+5</span></div>
+  </div>
+  <div id="evOut" class="findings"></div>
+  <p class="cite">AoP→station 換算は ISUOG 2018 ガイドライン掲載の換算表(Tutschek 2013:−3 = 84°、−2 = 95°、−1 = 106°、0 = 116°、+1 = 127°、+2 = 138°、+3 = 148°、+4 = 159°、+5 = 170°)を線形補間。MRI研究では station 0 ≈ 120° とする報告もあります。</p>
+</section>
+
+<!-- ============ Guide ============ -->
+<section class="panel" id="guide" hidden>
+  <h2>手技と臨床での使い方 <small>Technique &amp; clinical use</small></h2>
+  <div class="def">
+    <h3>基本の手順</h3>
+    <ol class="steps">
+      <li>膀胱を空にし、仰臥位・膝屈曲位で準備。プローブは清潔カバーで覆う。</li>
+      <li><b>正中矢状断</b>: 恥骨結合の直下、大陰唇の間にコンベックスプローブを縦に当て、恥骨結合長軸と児頭を同一画面に描出 → <b>AoP・児頭方向</b>。</li>
+      <li><b>横断</b>: プローブを90°回して会陰を圧迫 → <b>HPD・正中線角度</b>。</li>
+      <li>測定は陣痛間欠期、いきみのない状態で。</li>
+      <li><span class="term">児頭の向き<span class="en">occiput position</span></span>そのものは<b>経腹</b>エコーで確認する(低い位置では経会陰でも可)。</li>
+      <li>AoP の換算は ISUOG ガイドライン掲載の表(Tutschek 2013)に準拠:−3 = 84°、0 = 116°、+1 = 127°、+2 = 138°、+5 = 170°。</li>
+      <li>得られた所見を <b>St タブ</b>に入力し、児頭下降度を総合的に評価する。</li>
+    </ol>
+  </div>
+  <div class="def">
+    <h3>ISUOG ガイドラインの要点 <span class="en">ISUOG Practice Guidelines 2018</span></h3>
+    <p>経腟内診による station・回旋評価は主観的で検者間差が大きく、超音波は児頭の下降度を客観的に記録できます。<span class="term">器械分娩<span class="en">instrumental vaginal delivery</span></span>の前には、児頭の向きを経腹で、下降度を経会陰で評価することが推奨されています。</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>パラメータ</th><th>断面</th><th>主な目安</th></tr></thead>
+      <tbody>
+        <tr><td>進展角 AoP</td><td>矢状</td><td class="num">116° = 0 / 127° = +1<br>138° = +2(ISUOG表)<br>MRI研究: 0 ≈ 120°</td></tr>
+        <tr><td>児頭会陰間距離 HPD</td><td>横断</td><td class="num">35–38 mm 嵌入<br>≤40 mm 経腟分娩予測</td></tr>
+        <tr><td>児頭方向 HD</td><td>矢状</td><td class="num">&lt;0° down<br>0–30° horizontal<br>&gt;30° up</td></tr>
+        <tr><td>正中線角度 MLA</td><td>横断</td><td class="num">≥45° → ≤+2<br>&lt;45° → ≥+3</td></tr>
+        <tr><td>児頭下降度 St</td><td>内診</td><td class="num">0 = 坐骨棘間平面 = 嵌入<br>−4 = 恥骨結合下縁(U面)<br>+4 = 骨盤底</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="def">
+    <h3>落とし穴 <span class="en">pitfalls</span></h3>
+    <p><span class="term">産瘤<span class="en">caput succedaneum</span></span>や<span class="term">骨重積<span class="en">molding</span></span>があると、内診では実際より低く感じます。超音波は骨性先進部で測るので、ここが内診との差が出やすい場面です。</p>
+    <p class="note">本ツールの数値は教育目的の目安です。分娩方針は施設の基準と臨床所見を総合して決めてください。</p>
+  </div>
+</section>
+
+<!-- ============ Quiz ============ -->
+<section class="panel" id="quiz" hidden>
+  <h2>確認クイズ <small>Self-check</small></h2>
+  <div id="quizBox"></div>
+  <h2 style="margin-top:8px">文献 <small>References</small></h2>
+  <ol class="refs">
+    <li>Ghi T, Eggebø T, Lees C, et al. ISUOG Practice Guidelines: intrapartum ultrasound. <i>Ultrasound Obstet Gynecol</i> 2018;52:128–139. <a href="https://doi.org/10.1002/uog.19072">doi:10.1002/uog.19072</a></li>
+    <li>Eggebø TM, Hassan WA, Salvesen KÅ, et al. Sonographic prediction of vaginal delivery in prolonged labor: a two-center study. <i>Ultrasound Obstet Gynecol</i> 2014;43:195–201. <a href="https://pubmed.ncbi.nlm.nih.gov/24105705/">PubMed 24105705</a></li>
+    <li>Ghi T, Farina A, Pedrazzi A, et al. Diagnosis of station and rotation of the fetal head in the second stage of labor with intrapartum translabial ultrasound. <i>Ultrasound Obstet Gynecol</i> 2009;33:331–336. <a href="https://air.unipr.it/handle/11381/2784494">abstract</a></li>
+    <li>Kalache KD, Dückelmann AM, Michaelis SA, et al. Transperineal ultrasound imaging in prolonged second stage of labor with occipitoanterior presenting fetuses: how well does the 'angle of progression' predict the mode of delivery? <i>Ultrasound Obstet Gynecol</i> 2009;33:326–330.</li>
+    <li>Bamberg C, et al. Relationship between fetal head station established using an open MRI scanner and the angle of progression determined by transperineal ultrasound. <i>Ultrasound Obstet Gynecol</i> 2011;37:712–716. MRI検証例: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4592901/">PMC4592901</a></li>
+    <li>Dall'Asta A, Melito C, Ghi T. Intrapartum ultrasound review(HD分類・HPD・MLAの目安). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11495479">PMC11495479</a></li>
+    <li>Ramirez Zegarra R, Lizarraga Cepeda E, Ghi T. Intrapartum ultrasound. <i>Best Pract Res Clin Obstet Gynaecol</i> 2025(AoP 130° ≈ +1、140° ≈ +2). <a href="https://publicatt.unicatt.it/handle/10807/341007">record</a></li>
+    <li>Tutschek B, Torkildsen EA, Eggebø TM. Comparison between ultrasound parameters and clinical examination to assess fetal head station in labor. <i>Ultrasound Obstet Gynecol</i> 2013;41:425–429(ISUOG 2018 に掲載の AoP–station 換算表の出典)。</li>
+    <li>Kilpatrick S, Garrison E. Normal Labor and Delivery. In: Gabbe's Obstetrics: Normal and Problem Pregnancies (Chapter 13). <a href="https://obgyn.azurewebsites.net/wp-content/uploads/2014/02/gabbe-normal-labor.pdf">PDF</a></li>
+    <li>DGGG/ÖGGG/SGGG. Vaginal-operative Geburtshilfe, S2k-Leitlinie AWMF 015/023 (2012). <a href="https://www.degum.de/fileadmin/dokumente/Aktivitaeten/Leitlinien/PDF-Verlinkungen/LL_Vaginal-operative_Geburtshilfe_2012-05__Langfassung.pdf">PDF</a>; 改訂版 Vaginal-operative Birth (2023) <a href="https://doi.org/10.1055/a-2417-7833">doi:10.1055/a-2417-7833</a></li>
+    <li>Weitzel H, Hopp H. Wann steht der Kopf zangengerecht – vakuumgerecht? <i>Gynäkologe</i> 1998;31:742–750. <a href="https://link.springer.com/article/10.1007/PL00003158">abstract</a></li>
+    <li>Hodge 平面の定義: Höhenstand(独語版 Wikipedia、Pschyrembel Praktische Geburtshilfe 22. Aufl. 2019 等を出典). <a href="https://de.wikipedia.org/wiki/H%C3%B6henstand">link</a></li>
+    <li>Bettercare. Intrapartum Care 3A: Examination of the abdomen in labour(fifths palpable). <a href="https://bettercare.co.za/intrapartum-care/03a.html">link</a></li>
+  </ol>
+</section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="セクション">
+  <button role="tab" data-go="aop" aria-selected="true"><b>AoP</b>進展角</button>
+  <button role="tab" data-go="hpd" aria-selected="false"><b>HPD</b>会陰距離</button>
+  <button role="tab" data-go="hd" aria-selected="false"><b>HD</b>児頭方向</button>
+  <button role="tab" data-go="mla" aria-selected="false"><b>MLA</b>正中線角</button>
+  <button role="tab" data-go="st" aria-selected="false"><b>St</b>下降度</button>
+  <button role="tab" data-go="guide" aria-selected="false"><b>手技</b>Guide</button>
+  <button role="tab" data-go="quiz" aria-selected="false"><b>Quiz</b>確認</button>
+</nav>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const rad=d=>d*Math.PI/180;
+const sg=v=>(v>0?"+":"")+v;
+function txt(svg,x,y,s,fill,size,anchor,weight){const t=el("text",{x,y,fill,"font-size":size||11,"font-family":"JetBrains Mono, Zen Kaku Gothic New, monospace","text-anchor":anchor||"start","font-weight":weight||400},svg);t.textContent=s;return t;}
+function verdict(box,level,title,body,cite){
+  box.className="verdict v-"+level;
+  box.innerHTML=`<span class="pill">${title}</span><p>${body}</p>${cite?`<span class="cite">${cite}</span>`:""}`;
+}
+/* Probe at 3 o'clock: geometry is built with the probe on top, then rotated 90° clockwise.
+   rotP maps a top-probe point to its on-screen position. */
+function rotFrame(cx,cy,dx,dy){return p=>({x:cx-(p.y-cy)+dx,y:cy+(p.x-cx)+dy});}
+function fanRight(svg,ax,ay,r,spread){ // sector with apex at right, opening left
+  const a1=rad(180-spread/2),a2=rad(180+spread/2);
+  const x1=ax+r*Math.cos(a1),y1=ay+r*Math.sin(a1),x2=ax+r*Math.cos(a2),y2=ay+r*Math.sin(a2);
+  el("path",{d:`M${ax} ${ay} L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2} Z`,fill:css("--us-fan")},svg);
+  el("rect",{x:ax,y:ay-26,width:8,height:52,rx:3,fill:css("--probe")},svg);
+}
+function fanTop(svg,cx,cy,r,spread){
+  const a1=rad(90-spread/2),a2=rad(90+spread/2);
+  const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1),x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+  el("path",{d:`M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2} Z`,fill:css("--us-fan")},svg);
+  el("rect",{x:cx-26,y:cy-8,width:52,height:8,rx:3,fill:css("--probe")},svg);
+}
+
+/* ---------- AoP ↔ station model ---------- */
+const anchors=[[-3,84],[-2,95],[-1,106],[0,116],[1,127],[2,138],[3,148],[4,159],[5,170]]; // ISUOG 2018 table (Tutschek 2013)
+function aopFromStation(s){s=Math.max(-3,Math.min(5,s));for(let i=0;i<anchors.length-1;i++){const a=anchors[i],b=anchors[i+1];if(s<=b[0])return a[1]+(s-a[0])*(b[1]-a[1])/(b[0]-a[0]);}return 170;}
+function stationFromAop(g){g=Math.max(84,Math.min(170,g));for(let i=0;i<anchors.length-1;i++){const a=anchors[i],b=anchors[i+1];if(g<=b[1])return a[0]+(g-a[1])*(b[0]-a[0])/(b[1]-a[1]);}return 5;}
+const r1=v=>Math.round(v*2)/2;
+
+/* ---------- AoP (probe 12 o'clock) ----------
+   Layout follows a standard mid-sagittal TPU image: probe on top, symphysis near the top,
+   vertex = inferior edge of symphysis (right end), symphysis axis extended to the left,
+   tangent runs from the vertex to the skull. The head lies INSIDE the angle. */
+const svgA=document.getElementById("svgAop");
+function convexFan(svg,vx,vy,r0,r1,spread){
+  const a1=rad(90-spread/2),a2=rad(90+spread/2);
+  const p=(r,a)=>[vx+r*Math.cos(a),vy+r*Math.sin(a)];
+  const [x1,y1]=p(r0,a1),[x2,y2]=p(r1,a1),[x3,y3]=p(r1,a2),[x4,y4]=p(r0,a2);
+  el("path",{d:`M${x1} ${y1} L${x2} ${y2} A${r1} ${r1} 0 0 1 ${x3} ${y3} L${x4} ${y4} A${r0} ${r0} 0 0 0 ${x1} ${y1} Z`,fill:css("--us-fan")},svg);
+  const [px1,py1]=p(r0,rad(90-spread/2+8)),[px2,py2]=p(r0,rad(90+spread/2-8));
+  el("path",{d:`M${px1} ${py1} A${r0} ${r0} 0 0 1 ${px2} ${py2}`,fill:"none",stroke:css("--probe"),"stroke-width":7,"stroke-linecap":"round"},svg);
+}
+function drawAop(aop){
+  const st=stationFromAop(aop);
+  svgA.innerHTML="";
+  convexFan(svgA,200,-60,76,420,82);
+  const P={x:200,y:84};           // vertex: inferior edge of symphysis
+  const axisDeg=190;              // symphysis long axis, from vertex toward its upper end (left, slightly up)
+  const ax={x:Math.cos(rad(axisDeg)),y:Math.sin(rad(axisDeg))};
+  const top={x:P.x+ax.x*86,y:P.y+ax.y*86}; const mid={x:(P.x+top.x)/2,y:(P.y+top.y)/2};
+  el("ellipse",{cx:mid.x,cy:mid.y,rx:46,ry:13,transform:`rotate(${axisDeg} ${mid.x} ${mid.y})`,fill:css("--bone"),opacity:.85},svgA);
+  // tangent direction: AoP measured from the axis, sweeping down through the head side
+  const tdir=axisDeg-aop;
+  const Rh=60; const gap=14+(5-st)/8*106; const d=Rh+gap; const del=Math.asin(Rh/d)*180/Math.PI;
+  const cdir=tdir+del;            // head centre inside the angle (between tangent and axis)
+  const C={x:P.x+d*Math.cos(rad(cdir)),y:P.y+d*Math.sin(rad(cdir))};
+  const L=Math.sqrt(d*d-Rh*Rh);
+  const T={x:P.x+L*Math.cos(rad(tdir)),y:P.y+L*Math.sin(rad(tdir))};
+  const Tx={x:P.x+(L+40)*Math.cos(rad(tdir)),y:P.y+(L+40)*Math.sin(rad(tdir))};
+  el("circle",{cx:C.x,cy:C.y,r:Rh+6,fill:css("--us-head")},svgA);
+  el("circle",{cx:C.x,cy:C.y,r:Rh,fill:"none",stroke:css("--skull"),"stroke-width":5},svgA);
+  const A2={x:P.x+ax.x*170,y:P.y+ax.y*170};
+  el("line",{x1:P.x,y1:P.y,x2:A2.x,y2:A2.y,stroke:css("--caliper"),"stroke-width":2,"stroke-dasharray":"5 4"},svgA);
+  el("line",{x1:P.x,y1:P.y,x2:Tx.x,y2:Tx.y,stroke:css("--tangent"),"stroke-width":2},svgA);
+  el("circle",{cx:T.x,cy:T.y,r:3.5,fill:css("--tangent")},svgA);
+  const ar=30; const s1={x:P.x+ar*ax.x,y:P.y+ar*ax.y}; const s2={x:P.x+ar*Math.cos(rad(tdir)),y:P.y+ar*Math.sin(rad(tdir))};
+  el("path",{d:`M${P.x} ${P.y} L${s1.x} ${s1.y} A${ar} ${ar} 0 0 0 ${s2.x} ${s2.y} Z`,fill:css("--caliper"),"fill-opacity":.28,stroke:css("--caliper"),"stroke-width":2},svgA);
+  el("circle",{cx:P.x,cy:P.y,r:4,fill:css("--caliper")},svgA);
+  const mDir=(axisDeg+tdir)/2;
+  txt(svgA,P.x+(ar+16)*Math.cos(rad(mDir)),P.y+(ar+16)*Math.sin(rad(mDir))+4,"AoP",css("--caliper"),11,"middle",600);
+  txt(svgA,P.x+8,P.y-12,"恥骨下縁",css("--us-text"),10);
+  txt(svgA,mid.x,mid.y-18,"恥骨結合",css("--us-text"),10,"middle");
+  txt(svgA,C.x,C.y+4,"児頭",css("--us-text"),11,"middle");
+  txt(svgA,14,326,"AoP "+aop.toFixed(0)+"°",css("--caliper"),15);
+  txt(svgA,326,326,"St ≈ "+sg(r1(st)),css("--us-text"),12,"end");
+  document.getElementById("roAop").textContent=aop.toFixed(0)+"°";
+  document.getElementById("roSt").textContent=sg(r1(st));
+  document.getElementById("aopOut").textContent=aop.toFixed(0)+"°";
+  const eng=document.getElementById("roEng");
+  eng.textContent=aop>116?"あり":"なし"; eng.style.color=aop>116?css("--ok"):css("--bad");
+  const v=document.getElementById("vAop");
+  if(aop<110) verdict(v,"bad","未嵌入 not engaged","AoP 116° 以下は未嵌入の目安。遷延分娩第1期の研究では AoP ≥110° が経腟分娩の独立した予測因子でした。この段階での器械分娩は適応になりません。","Dall'Asta review; Eggebø 2014");
+  else if(aop<=116) verdict(v,"warn","嵌入境界 borderline","経腟分娩予測の AoP ≥110° は満たすものの、嵌入の目安(>116°、ISUOG換算表の station 0)にはまだ達していません。経時的な変化を追うのが有用です。","Eggebø 2014; ISUOG 2018");
+  else if(aop<120) verdict(v,"ok","嵌入 engaged","AoP >116° は嵌入の目安です(ISUOG換算表で 116° = station 0)。MRI との比較研究では station 0 は AoP ≈120° とされています。","ISUOG 2018 (Tutschek 2013); Bamberg 2011");
+  else verdict(v,"ok","station 0 以下へ下降","ISUOG換算表で 127° ≈ +1、138° ≈ +2。OA位の遷延分娩第2期では、AoP ≥120° で自然経腟分娩または容易な吸引分娩となる確率が約90%と報告されています。","ISUOG 2018 (Tutschek 2013); Kalache 2009");
+}
+const aopS=document.getElementById("aopSlider");
+aopS.addEventListener("input",()=>drawAop(parseInt(aopS.value)));
+
+/* ---------- HPD (probe 12 o'clock) ---------- */
+const svgH=document.getElementById("svgHpd");
+function drawHpd(mm){
+  svgH.innerHTML=""; fanTop(svgH,180,16,280,80);
+  const px=2.6; const skin=26; const yHead=skin+mm*px; const Rc=150;
+  el("line",{x1:110,y1:skin,x2:250,y2:skin,stroke:css("--us-text"),"stroke-width":1.5,"stroke-dasharray":"3 3"},svgH);
+  txt(svgH,256,skin+4,"会陰皮膚",css("--us-text"),10);
+  el("circle",{cx:180,cy:yHead+Rc,r:Rc+6,fill:css("--us-head")},svgH);
+  el("circle",{cx:180,cy:yHead+Rc,r:Rc,fill:"none",stroke:css("--skull"),"stroke-width":5},svgH);
+  el("line",{x1:180,y1:skin,x2:180,y2:yHead,stroke:css("--caliper"),"stroke-width":2},svgH);
+  [skin,yHead].forEach(y=>el("path",{d:`M172 ${y} L188 ${y}`,stroke:css("--caliper"),"stroke-width":2.5},svgH));
+  txt(svgH,192,(skin+yHead)/2+4,"HPD "+mm+" mm",css("--caliper"),14);
+  txt(svgH,180,Math.min(yHead+40,268),"児頭骨性外縁",css("--us-text"),10,"middle");
+  document.getElementById("hpdOut").textContent=mm+" mm";
+  const v=document.getElementById("vHpd");
+  if(mm<=38 && mm>=35) verdict(v,"ok","嵌入相当 ≈ engagement","HPD 35–38 mm は嵌入の目安とされる範囲です。","Dall'Asta review");
+  else if(mm<35) verdict(v,"ok","嵌入より低い位置","嵌入の目安(35–38 mm)より短く、児頭はさらに下降しています。","Dall'Asta review");
+  else if(mm<=40) verdict(v,"warn","HPD ≤40 mm","遷延分娩第1期の初産婦150例で、HPD ≤40 mm の92%が経腟分娩(>40 mm では52%)。ただし嵌入の目安よりはまだ長い値です。","Eggebø 2014, UOG 43:195");
+  else verdict(v,"bad","HPD >40 mm","遷延分娩第1期の初産婦で HPD >40 mm の場合、経腟分娩は52%にとどまりました(≤40 mm では92%)。圧迫不足による過大評価がないか確認してください。","Eggebø 2014, UOG 43:195");
+}
+const hs=document.getElementById("hpdSlider");
+hs.addEventListener("input",()=>drawHpd(parseInt(hs.value)));
+
+/* ---------- HD ---------- */
+const svgD=document.getElementById("svgHd");
+function drawHd(ang){
+  svgD.innerHTML="";
+  el("rect",{x:0,y:0,width:360,height:280,fill:css("--us-fan")},svgD);
+  el("ellipse",{cx:70,cy:120,rx:46,ry:12,fill:css("--bone"),opacity:.85},svgD);
+  txt(svgD,70,104,"恥骨結合",css("--us-text"),10,"middle");
+  el("line",{x1:20,y1:120,x2:345,y2:120,stroke:css("--caliper"),"stroke-width":1.6,"stroke-dasharray":"5 4"},svgD);
+  txt(svgD,345,112,"恥骨結合長軸",css("--caliper"),9.5,"end");
+  const hx=228,hy=150,L=105;
+  el("ellipse",{cx:hx,cy:hy,rx:74,ry:52,transform:`rotate(${-ang} ${hx} ${hy})`,fill:css("--us-head"),stroke:css("--skull"),"stroke-width":5},svgD);
+  el("line",{x1:hx-L,y1:hy,x2:hx+L,y2:hy,stroke:css("--caliper"),"stroke-width":1,"stroke-dasharray":"2 4",opacity:.7},svgD);
+  el("line",{x1:hx-L*Math.cos(rad(ang)),y1:hy+L*Math.sin(rad(ang)),x2:hx+L*Math.cos(rad(ang)),y2:hy-L*Math.sin(rad(ang)),stroke:css("--tangent"),"stroke-width":2},svgD);
+  txt(svgD,14,268,"HD "+sg(ang)+"°",css("--caliper"),15);
+  txt(svgD,346,268,"恥骨結合軸を水平に揃えた表示 / 青 = 児頭長軸",css("--us-text"),9,"end");
+  document.getElementById("hdOut").textContent=sg(ang)+"°";
+  const v=document.getElementById("vHd");
+  if(ang<0) verdict(v,"bad","head down","下向き。OA位では児頭が骨盤入口部にあることを示します。","Ramirez Zegarra/Ghi 2025 review");
+  else if(ang<=30) verdict(v,"warn","horizontal","水平。児頭が骨盤中部(mid-pelvis)に達していることを示唆します。","Ramirez Zegarra/Ghi 2025 review");
+  else verdict(v,"ok","head up","上向き(head-up sign)。児頭は骨盤出口部に近い低位です。正中線角度 <45° と組み合わさると station ≥+3 の確率が95.2%(40/42検査)と報告されています。","Ghi 2009, UOG 33:331");
+}
+const hd=document.getElementById("hdSlider");
+hd.addEventListener("input",()=>drawHd(parseInt(hd.value)));
+
+/* ---------- MLA ---------- */
+const svgM=document.getElementById("svgMla"); let headUp=false;
+function drawMla(a){
+  svgM.innerHTML=""; fanTop(svgM,180,16,280,80);
+  const C={x:180,y:150}; const Rr=96;
+  el("circle",{cx:C.x,cy:C.y,r:Rr+6,fill:css("--us-head")},svgM);
+  el("circle",{cx:C.x,cy:C.y,r:Rr,fill:"none",stroke:css("--skull"),"stroke-width":5},svgM);
+  el("line",{x1:C.x,y1:C.y-Rr-26,x2:C.x,y2:C.y+Rr+18,stroke:css("--caliper"),"stroke-width":1.6,"stroke-dasharray":"5 4"},svgM);
+  txt(svgM,C.x+6,C.y-Rr-14,"骨盤前後軸",css("--us-text"),10);
+  const dx=Math.sin(rad(a))*(Rr-10), dy=-Math.cos(rad(a))*(Rr-10);
+  el("line",{x1:C.x-dx,y1:C.y-dy,x2:C.x+dx,y2:C.y+dy,stroke:css("--tangent"),"stroke-width":3},svgM);
+  [-1,1].forEach(s=>{const x=C.x+s*Math.cos(rad(a))*16,y=C.y+s*Math.sin(rad(a))*16;el("ellipse",{cx:x,cy:y,rx:12,ry:20,transform:`rotate(${a} ${x} ${y})`,fill:"#26323c"},svgM);});
+  if(a>0){const ar=44;el("path",{d:`M${C.x} ${C.y-ar} A${ar} ${ar} 0 0 1 ${C.x+Math.sin(rad(a))*ar} ${C.y-Math.cos(rad(a))*ar}`,fill:"none",stroke:css("--caliper"),"stroke-width":2},svgM);}
+  txt(svgM,14,268,"MLA "+a+"°",css("--caliper"),15);
+  document.getElementById("mlaOut").textContent=a+"°";
+  const v=document.getElementById("vMla");
+  if(a>=45) verdict(v,"warn","MLA ≥45°","回旋は未完了。正中線が描出できない、または ≥45° の場合、95.1%(98/103検査)が station +2 以上の高さでした。","Ghi 2009, UOG 33:331");
+  else if(headUp) verdict(v,"ok","MLA <45° + head up","回旋が進み、児頭方向も上向き。この組み合わせでは station ≥+3 の確率が95.2%(40/42検査)と高くなります。","Ghi 2009, UOG 33:331");
+  else verdict(v,"ok","MLA <45°","回旋が進行。MLA <45° では69.2%(45/65検査)が station ≥+3 でした。児頭方向(HD)と合わせると精度が上がります。","Ghi 2009, UOG 33:331");
+}
+const ms=document.getElementById("mlaSlider");
+ms.addEventListener("input",()=>drawMla(parseInt(ms.value)));
+const chip=document.getElementById("chipUp");
+chip.addEventListener("click",()=>{headUp=!headUp;chip.setAttribute("aria-pressed",headUp);drawMla(parseInt(ms.value));});
+
+/* ---------- Station figure (international sources) ---------- */
+function dggg(s){
+  if(s<-4) return {key:"hi",state:"入口部より上",level:"bad",title:"骨盤入口部より上",
+    body:"先進部は恥骨結合下縁の平面(U面、坐骨棘間平面の4 cm上)より上にあります。",cite:"Weitzel & Hopp 1998"};
+  if(s<0) return {key:"be",state:"骨盤入口部",level:"bad",title:"骨盤入口部 Beckeneingang(−4〜0)",
+    body:"DGGG/ÖGGG/SGGG ガイドラインではこの高さでの器械分娩は禁忌です。まだ嵌入していません(嵌入 = station 0)。",cite:"DGGG 2012/2023; Gabbe's Obstetrics"};
+  if(s<2) return {key:"bm1",state:"骨盤中部",level:"warn",title:"骨盤中部 Beckenmitte(0〜<+2)",
+    body:"station 0 = 坐骨棘間平面で嵌入。DGGG ガイドラインでは、この高さの器械分娩は前方後頭位に限って適応とされています。",cite:"DGGG 2012/2023; Gabbe's Obstetrics"};
+  if(s<4) return {key:"bm2",state:"骨盤中部",level:"warn",title:"骨盤中部 Beckenmitte(+2〜<+4)",
+    body:"DGGG ガイドラインでは、前方・後方後頭位および反屈位で器械分娩の適応とされる高さです。",cite:"DGGG 2012/2023"};
+  return {key:"bb",state:"骨盤底",level:"ok",title:"骨盤底・出口部 Beckenboden(≥+4)",
+    body:"内診では坐骨棘と仙骨窩はもう触れません。外診(Schwarzenbach 法・De Lee 法)でも診断できます。",cite:"DGGG 2012"};
+}
+const svgS=document.getElementById("svgSt");
+function drawSt(s){
+  svgS.innerHTML="";
+  const ink=css("--ink"),mut=css("--muted"),pel=css("--pelvis"),zero=css("--zero"),acc=css("--accent");
+  const y0=140, cm=17; const yOf=v=>y0+v*cm;
+  // pelvic walls (frontal schematic)
+  el("path",{d:`M84 ${yOf(-7.5)} C 82 ${yOf(-1)}, 92 ${yOf(3)}, 120 ${yOf(7)}`,fill:"none",stroke:pel,"stroke-width":6,"stroke-linecap":"round"},svgS);
+  el("path",{d:`M236 ${yOf(-7.5)} C 238 ${yOf(-1)}, 228 ${yOf(3)}, 200 ${yOf(7)}`,fill:"none",stroke:pel,"stroke-width":6,"stroke-linecap":"round"},svgS);
+  [[88,1],[232,-1]].forEach(([x,dir])=>el("path",{d:`M${x} ${y0-8} L${x+dir*15} ${y0} L${x} ${y0+8}`,fill:pel},svgS));
+  // symphysis bar on the left (lower edge at U-plane = -4)
+  const symTop=12, symBot=yOf(-4);
+  el("rect",{x:36,y:symTop,width:22,height:symBot-symTop,rx:9,fill:pel},svgS);
+  txt(svgS,47,symTop+((symBot-symTop)/2)+4,"恥",ink,10,"middle",700);
+  txt(svgS,47,symBot+14,"下縁",mut,9,"middle");
+  // planes
+  [[-4,"U面 恥骨結合下縁"],[0,"I面 坐骨棘間"],[4,"B面 骨盤底"]].forEach(([v,l])=>{
+    el("line",{x1:30,y1:yOf(v),x2:284,y2:yOf(v),stroke:v===0?zero:mut,"stroke-width":v===0?1.6:1,"stroke-dasharray":v===0?"6 4":"2 4"},svgS);
+    txt(svgS,282,yOf(v)-5,l,v===0?zero:mut,9.5,"end",600);
+  });
+  txt(svgS,104,y0+20,"SP",zero,9.5,"start",600);
+  const sx=300;
+  el("line",{x1:sx,y1:yOf(-5),x2:sx,y2:yOf(5),stroke:mut,"stroke-width":1},svgS);
+  for(let v=-5;v<=5;v++){el("line",{x1:sx-4,y1:yOf(v),x2:sx+4,y2:yOf(v),stroke:v===0?zero:mut,"stroke-width":v===0?2:1},svgS);txt(svgS,sx+9,yOf(v)+4,v===0?"0":sg(v),v===0?zero:mut,10);}
+  txt(svgS,sx,yOf(-5)-10,"cm",mut,10,"middle");
+  const Rh=50, lead=yOf(s), hc=lead-Rh;
+  el("circle",{cx:160,cy:hc,r:Rh,fill:css("--accent-soft"),stroke:acc,"stroke-width":3},svgS);
+  el("circle",{cx:160,cy:lead,r:4,fill:acc},svgS);
+  el("line",{x1:166,y1:lead,x2:sx-6,y2:lead,stroke:acc,"stroke-width":1.2,"stroke-dasharray":"2 3"},svgS);
+  txt(svgS,160,hc+4,"児頭",ink,12,"middle");
+  txt(svgS,12,284,"● 骨性先進部 · U面は坐骨棘間平面の 4 cm 上",mut,9.5);
+  document.getElementById("stRo").textContent=sg(s);
+  document.getElementById("stOut").textContent=sg(s);
+  document.getElementById("stAop").textContent=s>=-3?aopFromStation(s).toFixed(0)+"°":"表外";
+  const d=dggg(s); const se=document.getElementById("stState"); se.textContent=d.state; se.style.color=s>=0?css("--ok"):css("--bad");
+  verdict(document.getElementById("vSt"),d.level,d.title,d.body,d.cite);
+  document.querySelectorAll("#stTbl tbody tr").forEach(tr=>{const on=tr.dataset.r===d.key;tr.style.background=on?css("--accent-soft"):"";tr.style.fontWeight=on?"600":"";});
+}
+const stS=document.getElementById("stSlider");
+stS.addEventListener("input",()=>drawSt(parseInt(stS.value)));
+
+/* ---------- Station evaluator ---------- */
+const ev={hpd:"na",hd:"na",mla:"na"};
+function chipGroup(id,key){document.querySelectorAll("#"+id+" button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#"+id+" button").forEach(x=>x.setAttribute("aria-pressed",x===b));ev[key]=b.dataset.v;evaluate();}));}
+chipGroup("evHpd","hpd");chipGroup("evHd","hd");chipGroup("evMla","mla");
+const evA=document.getElementById("evAop"),evD=document.getElementById("evDig");
+evA.addEventListener("input",evaluate);evD.addEventListener("input",evaluate);
+function card(level,title,lines,cite){return `<div class="verdict v-${level}"><span class="pill">${title}</span><ul>${lines.map(l=>`<li>${l}</li>`).join("")}</ul>${cite?`<span class="cite">${cite}</span>`:""}</div>`;}
+function evaluate(){
+  const aop=parseInt(evA.value); const est=stationFromAop(aop); const estR=r1(est);
+  document.getElementById("evAopOut").textContent=aop+"°";
+  const dig=parseInt(evD.value); document.getElementById("evDigOut").textContent=dig===-4?"未入力":sg(dig);
+  let html="";
+  // main estimate
+  const engaged=aop>116;
+  html+=card(engaged?"ok":"bad",`推定 St ≈ ${sg(estR)}`,[
+    `AoP ${aop}° → station 約 ${sg(estR)}(ISUOG換算表)`,
+    engaged?"AoP >116°: 嵌入あり":"AoP ≤116°: 未嵌入",
+    aop>=120?"AoP ≥120°: OA位の遷延第2期で自然経腟分娩/容易な吸引分娩 約90%":"AoP <120°: station 0 より高い"
+  ],"ISUOG 2018 (Tutschek 2013); Dall'Asta review; Kalache 2009");
+  // supporting findings
+  const sup=[]; let conflict=[];
+  if(ev.hpd!=="na"){
+    if(ev.hpd==="lt35"){sup.push("HPD <35 mm: 嵌入の目安(35–38 mm)より低い");}
+    if(ev.hpd==="35"){sup.push("HPD 35–38 mm: 嵌入相当");}
+    if(ev.hpd==="39"){sup.push("HPD 39–40 mm: 嵌入目安よりやや高い。遷延第1期では HPD ≤40 mm の92%が経腟分娩");}
+    if(ev.hpd==="gt40"){sup.push("HPD >40 mm: 遷延第1期の経腟分娩率52%");}
+    if(engaged && ev.hpd==="gt40") conflict.push("AoP は嵌入を示すが HPD >40 mm。会陰の圧迫不足・断面のずれを確認");
+    if(!engaged && (ev.hpd==="lt35"||ev.hpd==="35")) conflict.push("HPD は嵌入相当だが AoP は未嵌入。矢状断の描出(恥骨結合長軸)を確認");
+  }
+  if(ev.hd!=="na"){
+    sup.push({down:"head down: 骨盤入口部(OA位の場合)",hor:"horizontal: 骨盤中部",up:"head up: 骨盤出口部に近い低位"}[ev.hd]);
+    if(ev.hd==="up" && est<1) conflict.push("head up だが AoP からの推定は station +1 未満。AoP 測定を再確認");
+    if(ev.hd==="down" && est>=2) conflict.push("head down だが AoP からの推定は +2 以上。児頭長軸の取り方を再確認");
+  }
+  if(ev.mla!=="na"){
+    if(ev.mla==="ge45") sup.push("MLA ≥45°/描出不能: 95.1% が station +2 以上の高さ");
+    else if(ev.hd==="up") sup.push("MLA <45° + head up: station ≥+3 の確率 95.2%");
+    else sup.push("MLA <45°: 69.2% が station ≥+3");
+    if(ev.mla==="ge45" && est>=3) conflict.push("MLA ≥45° は +2 以上の高さを示唆するが、AoP からの推定は +3 以上");
+    if(ev.mla==="lt45" && ev.hd==="up" && est<3) conflict.push("MLA <45° + head up は ≥+3 を示唆するが、AoP からの推定は +3 未満");
+  }
+  if(sup.length) html+=card("warn","補助所見 supporting findings",sup,"Dall'Asta review; Eggebø 2014; Ghi 2009");
+  if(dig!==-4){
+    const diff=dig-estR;
+    const l=[`内診 ${sg(dig)} / 超音波推定 ${sg(estR)}(差 ${diff>0?"+":""}${diff} cm)`];
+    if(Math.abs(diff)>=1) l.push(diff>0?"内診のほうが低く評価。産瘤・骨重積で骨性先進部を低く見積もっていないか確認":"内診のほうが高く評価。所見の再評価を");
+    else l.push("内診と超音波推定はおおむね一致");
+    html+=card(Math.abs(diff)>=1?"warn":"ok","内診との比較 digital vs US",l,"ISUOG 2018: 内診による station 評価は主観的");
+  }
+  if(conflict.length) html+=card("bad","所見の不一致 check",conflict,"");
+  if(!sup.length && dig===-4) html+=`<p class="note">②〜⑤を入力すると、補助所見・不一致チェック・内診との比較が表示されます。</p>`;
+  document.getElementById("evOut").innerHTML=html;
+}
+
+/* ---------- Quiz ---------- */
+const Q=[
+ {q:"進展角(AoP)を測定する断面はどれ?",o:["経会陰 正中矢状断","経会陰 横断","経腹 横断","経腟 矢状断"],a:0,e:"AoP と児頭方向は正中矢状断、HPD と正中線角度は横断で測ります。"},
+ {q:"station 0 の基準となる平面は?",o:["骨盤入口面","坐骨棘間平面","恥骨結合下縁","会陰皮膚"],a:1,e:"児頭骨性先進部が坐骨棘を結ぶ平面にある位置が station 0。坐骨棘は正中矢状断に写らないため、超音波では AoP などから推定します。"},
+ {q:"DGGG ガイドラインで、児頭が骨盤底(+4)に達したときの内診所見は?",o:["坐骨棘と仙骨窩が触れなくなる","恥骨結合後面が全部触れる","岬角に触れる","坐骨棘が先進部の下方に触れる"],a:0,e:"骨性先進部が骨盤底(+4)に達すると、坐骨棘と仙骨窩は触れなくなります。外診(Schwarzenbach 法・De Lee 法)でも診断できます。"},
+ {q:"Hodge の U面(恥骨結合下縁の平面)は、坐骨棘間平面から見てどの高さ?",o:["2 cm 上","4 cm 上","同じ高さ","4 cm 下"],a:1,e:"U面は坐骨棘間平面の 4 cm 上(station −4 相当)。骨盤入口部(Beckeneingang)は −4〜0 に分類されます。"},
+ {q:"open MRI との比較研究で、station 0 に相当するとされた AoP はどれ?",o:["約100°","約110°","約120°","約140°"],a:2,e:"MRI 研究で station 0 ≈ AoP 120°。一方、ISUOG ガイドライン掲載の換算表(Tutschek 2013)では station 0 = 116°、+1 = 127°、+2 = 138° です。"},
+ {q:"児頭会陰間距離(HPD)を正しく測るために必須の操作は?",o:["いきみながら測る","会陰軟部組織をプローブで十分圧迫する","プローブを恥骨上に置く","カラードプラを併用する"],a:1,e:"圧迫が不十分だと軟部組織の厚みを含み、HPD を過大評価します。"},
+ {q:"児頭方向 \"head up\" の定義は?",o:["<0°","0〜30°",">30°",">60°"],a:2,e:"head down <0°、horizontal 0〜30°、head up >30°。下降に伴い下向き→水平→上向きへ変わります。"},
+ {q:"正中線角度が 60° のとき、最も考えやすい所見は?",o:["回旋完了・station ≥+3","回旋未完了・station +2 以上の高さ","後方後頭位で確定","嵌入していない"],a:1,e:"MLA ≥45° は 95.1% で station +2 以上の高さ(より低くない)。回旋位そのものは経腹エコーで確認します。"},
+ {q:"内診で +3、AoP 125° のとき、まず考えるべきことは?",o:["超音波の誤差なので内診を優先","産瘤・骨重積で内診が低く見積もっている可能性","すぐに吸引分娩を行う","HPD は測定不要"],a:1,e:"AoP 125° は ISUOG換算表で station 約 +1。内診は産瘤を先進部と誤認しやすく、骨性先進部で測る超音波との差が出ます。"},
+ {q:"遷延分娩第1期の初産婦で HPD ≤40 mm の経腟分娩率として報告された値は?",o:["約52%","約72%","約92%","100%"],a:2,e:"Eggebø 2014(n=150)で HPD ≤40 mm は 92%、>40 mm は 52% が経腟分娩でした。"}
+];
+let qi=0,score=0,answered=false;
+const box=document.getElementById("quizBox");
+function renderQ(){
+  if(qi>=Q.length){box.innerHTML=`<div class="quiz-q"><h3>結果 ${score} / ${Q.length}</h3><p class="exp">間違えた項目は各タブのスライダーで確認してみてください。</p><div class="qbar"><span></span><button id="qRe">もう一度</button></div></div>`;document.getElementById("qRe").onclick=()=>{qi=0;score=0;renderQ();};return;}
+  const it=Q[qi];answered=false;
+  box.innerHTML=`<div class="quiz-q"><div class="qbar"><span>Q${qi+1} / ${Q.length}</span><span>正解 ${score}</span></div><h3>${it.q}</h3><div class="opts">${it.o.map((t,i)=>`<button data-i="${i}">${t}</button>`).join("")}</div><p class="exp" id="qExp" hidden></p><div class="qbar" id="qNext" hidden><span></span><button>次へ</button></div></div>`;
+  box.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+    if(answered)return;answered=true;const i=+b.dataset.i;
+    box.querySelectorAll(".opts button")[it.a].classList.add("right");
+    if(i===it.a)score++;else b.classList.add("wrong");
+    const ex=document.getElementById("qExp");ex.textContent=(i===it.a?"正解。":"不正解。")+it.e;ex.hidden=false;
+    const nx=document.getElementById("qNext");nx.hidden=false;nx.querySelector("button").onclick=()=>{qi++;renderQ();};
+  });
+}
+
+/* ---------- tabs ---------- */
+const tabs=[...document.querySelectorAll("nav.tabs button")];
+function go(id){
+  document.querySelectorAll("section.panel").forEach(s=>s.hidden=s.id!==id);
+  tabs.forEach(t=>t.setAttribute("aria-selected",t.dataset.go===id));
+  try{localStorage.setItem("tpu-tab",id)}catch(e){}
+  window.scrollTo(0,0);
+}
+tabs.forEach(t=>t.addEventListener("click",()=>go(t.dataset.go)));
+
+function drawAll(){drawAop(parseInt(aopS.value));drawHpd(parseInt(hs.value));drawHd(parseInt(hd.value));drawMla(parseInt(ms.value));drawSt(parseInt(stS.value));evaluate();}
+drawAll(); renderQ();
+try{window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",drawAll);}catch(e){}
+new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+let start=(location.hash||"").slice(1);
+if(!document.getElementById(start)){try{start=localStorage.getItem("tpu-tab")||"aop"}catch(e){start="aop"}}
+if(document.getElementById(start))go(start);
+})();
+</script>
+
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}
+</script>
+</body>
+</html>
